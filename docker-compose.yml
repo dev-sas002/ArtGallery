@@ -12,6 +12,7 @@ services:
       # the Metropolitan Museum of Art Collection API.
       ARTWORK_SOURCE: ${ARTWORK_SOURCE:-local}
       CATALOG_CACHE_TTL_MS: ${CATALOG_CACHE_TTL_MS:-600000}
+      AI_SEARCH_CACHE_TTL_MS: ${AI_SEARCH_CACHE_TTL_MS:-900000}
       # Optional. Unset means natural-language search falls back to the
       # built-in parser; nothing breaks.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
