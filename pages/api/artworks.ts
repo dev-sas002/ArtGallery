@@ -73,12 +73,17 @@ export default async function handler(
       },
     })
 
-    const { query, interpretedBy } = await interpretSearch(search, {
+    const interpretation = await interpretSearch(search, {
       interpreter,
       enabled: aiEnabled(req.query.ai),
     })
+    const { interpretedBy } = interpretation
 
-    if (department) query.departments = [department.toLowerCase()]
+    // The interpretation may be the cached object itself, so the chip
+    // override goes on a copy rather than leaking into later requests.
+    const query: ArtworkQuery = department
+      ? { ...interpretation.query, departments: [department.toLowerCase()] }
+      : interpretation.query
 
     const matches = applyQuery(catalog, query)
     const page = paginate(matches, offset, limit)
