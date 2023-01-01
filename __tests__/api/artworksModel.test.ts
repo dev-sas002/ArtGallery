@@ -27,7 +27,6 @@ jest.mock('@anthropic-ai/sdk', () =>
   }))
 )
 
-// eslint-disable-next-line import/first
 import handler, { type ArtworksResponse } from '../../pages/api/artworks'
 
 const call = async (query: Record<string, string>) => {

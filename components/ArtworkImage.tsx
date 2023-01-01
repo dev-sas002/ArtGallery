@@ -28,12 +28,11 @@ export const ArtworkImage = ({ artwork, sizes, priority = false }: Props) => {
         <Image
           src={artwork.imageUrl}
           alt={`${artwork.title} by ${artwork.artist}`}
-          layout="fill"
-          objectFit="contain"
+          fill
           sizes={sizes}
           priority={priority}
           className={styles.image}
-          onLoadingComplete={() => setState('loaded')}
+          onLoad={() => setState('loaded')}
           onError={() => setState('failed')}
         />
       )}

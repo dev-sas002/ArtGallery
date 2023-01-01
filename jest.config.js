@@ -6,12 +6,7 @@ module.exports = {
   // __tests__ are not picked up as (empty) test suites.
   testMatch: ['<rootDir>/__tests__/**/*.test.ts?(x)'],
   transform: {
-    '^.+\\.tsx?$': [
-      'ts-jest',
-      // tsconfig.json keeps `jsx: "preserve"` for the Next.js compiler, but
-      // ts-jest has to emit real JSX factory calls to run components.
-      { tsconfig: { jsx: 'react-jsx' } },
-    ],
+    '^.+\\.tsx?$': 'ts-jest',
   },
   moduleNameMapper: {
     '\\.(css|sass|scss)$': '<rootDir>/__tests__/__mocks__/styleMock.js',

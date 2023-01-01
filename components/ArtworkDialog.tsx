@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import { displayYear, type Artwork } from '../lib/artwork'
 import styles from '../styles/Gallery.module.css'
 import { ArtworkImage } from './ArtworkImage'
@@ -33,11 +33,10 @@ export const ArtworkDialog = ({ artwork, onClose }: Props) => {
   const openerRef = useRef<Element | null>(null)
 
   // Callers usually pass an inline arrow, which is a new function on every
-  // render. Reading it through a ref keeps the effect below tied to the
-  // artwork alone; otherwise any parent re-render would re-run it and pull
-  // focus back to the dialog container mid-interaction.
-  const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
+  // render. As an effect event it always sees the latest onClose without
+  // being a dependency, so a parent re-render does not re-run the effect
+  // below and pull focus back to the dialog container mid-interaction.
+  const close = useEffectEvent(() => onClose())
 
   useEffect(() => {
     if (!artwork) return
@@ -47,7 +46,7 @@ export const ArtworkDialog = ({ artwork, onClose }: Props) => {
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onCloseRef.current()
+        close()
         return
       }
 

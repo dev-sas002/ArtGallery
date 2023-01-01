@@ -9,7 +9,6 @@ jest.mock('../../lib/catalog', () => ({
   }),
 }))
 
-// eslint-disable-next-line import/first
 import handler from '../../pages/api/artworks'
 
 describe('GET /api/artworks failure path', () => {
