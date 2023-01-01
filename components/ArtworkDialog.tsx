@@ -32,6 +32,13 @@ export const ArtworkDialog = ({ artwork, onClose }: Props) => {
   const dialogRef = useRef<HTMLDivElement>(null)
   const openerRef = useRef<Element | null>(null)
 
+  // Callers usually pass an inline arrow, which is a new function on every
+  // render. Reading it through a ref keeps the effect below tied to the
+  // artwork alone; otherwise any parent re-render would re-run it and pull
+  // focus back to the dialog container mid-interaction.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
   useEffect(() => {
     if (!artwork) return
 
@@ -40,7 +47,7 @@ export const ArtworkDialog = ({ artwork, onClose }: Props) => {
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose()
+        onCloseRef.current()
         return
       }
 
@@ -68,7 +75,7 @@ export const ArtworkDialog = ({ artwork, onClose }: Props) => {
       document.removeEventListener('keydown', onKeyDown)
       ;(openerRef.current as HTMLElement | null)?.focus?.()
     }
-  }, [artwork, onClose])
+  }, [artwork])
 
   if (!artwork) return null
 

@@ -46,6 +46,28 @@ describe('ArtworkDialog', () => {
     opener.remove()
   })
 
+  it('keeps focus where it is when the parent re-renders with a new onClose', () => {
+    const { rerender } = render(<ArtworkDialog artwork={WAVE} onClose={() => undefined} />)
+
+    const close = screen.getByRole('button', { name: 'Close' })
+    close.focus()
+    rerender(<ArtworkDialog artwork={WAVE} onClose={() => undefined} />)
+
+    expect(document.activeElement).toBe(close)
+  })
+
+  it('calls the latest onClose on Escape', () => {
+    const first = jest.fn()
+    const latest = jest.fn()
+    const { rerender } = render(<ArtworkDialog artwork={WAVE} onClose={first} />)
+    rerender(<ArtworkDialog artwork={WAVE} onClose={latest} />)
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(first).not.toHaveBeenCalled()
+    expect(latest).toHaveBeenCalledTimes(1)
+  })
+
   it('closes on Escape, on the backdrop, and on the close button', () => {
     const onClose = jest.fn()
     const { container } = render(<ArtworkDialog artwork={WAVE} onClose={onClose} />)
