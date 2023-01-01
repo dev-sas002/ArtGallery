@@ -7,9 +7,9 @@ change one environment variable.
 
 ![The gallery home view: a search box, department facet chips with counts, and the first row of framed works](docs/screenshots/gallery.png)
 
-Next.js 12 (Pages Router), React 17, TypeScript. No database, no ORM, no state-management
-library, no component framework — a read-only catalogue of this size does not need them.
-112 tests, 99% statement coverage.
+Next.js 16 (Pages Router), React 19, TypeScript, Node 22. No database, no ORM, no
+state-management library, no component framework — a read-only catalogue of this size does
+not need them. 118 tests, 99% statement coverage.
 
 ## What happens to what you type
 
@@ -109,12 +109,42 @@ $ curl -s http://localhost:8120/api/health
 {"status":"ok","source":"local","artworks":46,"aiSearch":"disabled"}
 ```
 
-Tear it down with `docker compose down -v`. Without Docker:
+Tear it down with `docker compose down -v`. Without Docker you need Node 22 (`.nvmrc`):
 
 ```bash
-npm install
-npm run dev     # http://localhost:3000
+npm ci
+npm run dev                    # http://localhost:3000
+# or the production server:
+npm run build && npm start     # http://localhost:3000
 ```
+
+A search against the bundled catalogue, trimmed to one result:
+
+```console
+$ curl -s 'http://localhost:8120/api/artworks?search=hokusai%20before%201840&limit=1'
+{
+  "data": [
+    {
+      "id": "met-48886",
+      "title": "Album of Sketches by Katsushika Hokusai and His Disciples",
+      "artist": "Katsushika Hokusai",
+      "year": 1800,
+      "yearDisplay": "19th century",
+      "department": "Asian Art",
+      "imageUrl": "https://images.metmuseum.org/CRDImages/as/web-large/DT5298.jpg",
+      ...
+    }
+  ],
+  "total": 2, "returned": 1, "offset": 0, "limit": 1, "nextOffset": 1,
+  "facets": { "departments": [{ "value": "European Paintings", "count": 28 }, ...] },
+  "query": { "terms": ["hokusai"], "yearFrom": null, "yearTo": 1839, ... },
+  "interpretedBy": "heuristic",
+  "source": "local",
+  "attribution": "The Metropolitan Museum of Art Open Access (CC0)"
+}
+```
+
+`before 1840` became `yearTo: 1839` and left `hokusai` as the only free-text term.
 
 Every environment variable is optional; with none set the app runs against the bundled
 catalogue and the parser handles every query.
@@ -139,18 +169,27 @@ is the wrong default for a gallery; the fixed frame ratio also means zero layout
 images stream in. Cards are buttons, the dialog takes focus on open, traps Tab in both
 directions, closes on Escape or backdrop, and returns focus to the card that opened it.
 Loading, empty and failure states are all distinct, including a per-image failure that
-degrades to a caption instead of a broken icon. Light and dark palettes are both defined and
-`prefers-reduced-motion` is honoured.
+degrades to a caption instead of a broken icon. Light and dark palettes are both defined,
+faint label text holds 4.5:1 contrast in each, and `prefers-reduced-motion` is honoured.
+Titles are set in EB Garamond, the interface in Source Sans 3, with the system serif and sans
+stacks behind them when Google Fonts cannot be reached.
 
-![Two scrolled rows of the grid: Bruegel, El Greco, Rubens, Caravaggio, van Dyck, each framed on its own mat](docs/screenshots/grid.png)
+![Two scrolled rows of the grid: Rubens, Caravaggio, El Greco, van Dyck, Vermeer, Rembrandt and Jan Steen, each framed on its own mat](docs/screenshots/grid.png)
+
+On a phone the grid drops to two columns and the dialog becomes a single scrolling column;
+the page behind it is scroll-locked while it is open.
+
+<p>
+  <img src="docs/screenshots/gallery-mobile.png" width="260" alt="The gallery at 390px wide: header, search box, wrapped department chips and a two-column grid" />
+  <img src="docs/screenshots/artwork-detail-mobile.png" width="260" alt="The detail dialog at 390px wide: image on top, then the title and the label rows" />
+</p>
 
 Images come through Next's pipeline with tuned `deviceSizes`/`imageSizes`, eager for the
-first four cards and lazy below. A representative work drops from a **57 KB upstream JPEG to
-a 12 KB WebP** at the 300 px the grid actually renders. `sharp` is an optional dependency for
-exactly this: with it the optimiser transcodes in ~1.4 s and emits WebP; without it Next 12
-falls back to a bundled WASM encoder that took ~8.8 s and emitted a 122 KB JPEG.
+first four cards and lazy below. A representative work drops from a **98 KB upstream JPEG to
+a 15 KB WebP** at the 320 px width the grid requests. Next 16 installs `sharp` itself, so the
+production image transcodes natively.
 
-## Two things that were broken here first
+## What was broken here first
 
 The production build did not work at all. `tsconfig.json` set no `types`, so TypeScript
 pulled in every package under `node_modules/@types`, including `@types/babel__traverse` —
@@ -163,14 +202,27 @@ lower-cased haystack against the caller's raw input, so `'Mona'` returned `[]` w
 `'mona'` returned one work. It only appeared to work because the single call site happened
 to pre-normalise first. Normalisation now happens inside the query layer.
 
+Three more turned up later, none of which the tests could see:
+
+- **Load more never loaded.** The hook started the request from an effect and then cleared
+  the state that triggered it, so React's cleanup aborted the fetch it had just made. The
+  grid sat on skeletons. The test stub ignored `AbortSignal`, which is why it passed; it now
+  rejects aborted requests the way `fetch` does.
+- **A department chip stuck to a cached AI interpretation.** The route wrote the chip's
+  department onto the query object the interpretation cache had handed back, so the same
+  phrase stayed filtered on the next request. The override now goes on a copy.
+- **The open dialog stole focus** every time the page re-rendered, because its effect
+  depended on an inline `onClose`. It is now an effect event.
+
 ## Tests
 
-`npm test` — 13 suites, 112 tests, no network calls anywhere. `npm run test:coverage`
-enforces the thresholds in `jest.config.js` (90/85/90/90) and currently reports 99.2%
-statements, 92.1% branches. The Anthropic client is injected, the Met adapter takes
+`npm test` — 14 suites, 118 tests, no network calls anywhere. `npm run test:coverage`
+enforces the thresholds in `jest.config.js` (90/85/90/90) and currently reports 99.0%
+statements, 92.4% branches. The Anthropic client is injected, the Met adapter takes
 a `fetchImpl`, and the page tests drive a stub of `/api/artworks` that honours search,
 department, limit and offset — so pagination and filtering are exercised end to end without
-a server. Also available: `npm run lint`, `npm run typecheck`, `npm run format`.
+a server. Also available: `npm run lint` (ESLint 9 flat config), `npm run typecheck`
+(`next typegen`, then `tsc`), `npm run format:check`.
 
 `npm run seed` regenerates `data/catalog.json` from the Met API, verifying public-domain
 status and image reachability per object. It is the only script that touches the network,
@@ -189,12 +241,16 @@ and nothing at runtime depends on it having been run.
   rate-limited upstream.
 - **Images are hot-linked** from `images.metmuseum.org`. With no outbound network the
   metadata still renders, but every frame shows its "Image unavailable" state.
-- Next 12 with the Pages Router is kept as-is; nothing here depends on the App Router.
+- **Pages Router only.** Nothing here needs the App Router, so it was not migrated.
 
 ## Attribution
 
 Metadata and images come from [The Metropolitan Museum of Art Collection
 API](https://metmuseum.github.io/). Open-access metadata is CC0, and only objects the Met
 marks as public domain are included. Screenshots were captured with Playwright at 1440x900
-against the container on `http://localhost:8120`, waiting for every image to finish loading
+and 390x844 against the Compose container, waiting for every visible image to finish loading
 so no frame is a skeleton.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE). The artwork data is CC0 from the Met, as above.
