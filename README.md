@@ -31,7 +31,7 @@ prompt behind a cache breakpoint, so the only variable half of the request is th
 itself. The model's answer is **merged on top of** the parse, field by field, never
 substituted for it: a bad interpretation can add a filter, it can never lose your literal
 words. Any failure, timeout or malformed reply falls back to the parse with one warning.
-With no key, `createClaudeInterpreter` returns `null` and the feature is *absent* rather
+With no key, `createClaudeInterpreter` returns `null` and the feature is _absent_ rather
 than broken — nothing is disabled, nothing warns per request. The UI marks a
 model-expanded query with an "AI" badge, and `?ai=off` forces the heuristic path.
 
@@ -124,9 +124,9 @@ catalogue and the parser handles every query.
 | `ARTWORK_SOURCE`         | `local`         | `local` reads `data/catalog.json`; `met` fetches from the Met API.  |
 | `CATALOG_CACHE_TTL_MS`   | `600000`        | How long an indexed catalogue is reused before the source is asked. |
 | `AI_SEARCH_CACHE_TTL_MS` | `900000`        | How long an interpretation is reused.                               |
-| `ANTHROPIC_API_KEY`      | unset           | Enables natural-language search. Read from the environment only.     |
-| `ANTHROPIC_MODEL`        | `claude-opus-5` | Model used for query interpretation.                                 |
-| `PORT`                   | `3000`          | Port the server binds to inside the container.                       |
+| `ANTHROPIC_API_KEY`      | unset           | Enables natural-language search. Read from the environment only.    |
+| `ANTHROPIC_MODEL`        | `claude-opus-5` | Model used for query interpretation.                                |
+| `PORT`                   | `3000`          | Port the server binds to inside the container.                      |
 
 Copy `.env.example` to `.env` to set them for Compose.
 
@@ -155,7 +155,7 @@ falls back to a bundled WASM encoder that took ~8.8 s and emitted a 122 KB JPEG.
 The production build did not work at all. `tsconfig.json` set no `types`, so TypeScript
 pulled in every package under `node_modules/@types`, including `@types/babel__traverse` —
 whose `infer N extends number` is syntax TypeScript 4.5.5 cannot parse. `skipLibCheck` does
-not suppress a *parse* error, so `tsc --noEmit` and `next build` both failed. Restricting
+not suppress a _parse_ error, so `tsc --noEmit` and `next build` both failed. Restricting
 `types` to `["node", "react", "jest"]` fixed it.
 
 And search silently returned nothing for any capitalised term: the filter compared a

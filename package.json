@@ -39,7 +39,7 @@
   "version": "1.0.0",
   "description": "A small Next.js gallery that browses a public-domain artwork catalogue behind a pluggable source interface.",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "optionalDependencies": {
     "sharp": "^0.33.5"

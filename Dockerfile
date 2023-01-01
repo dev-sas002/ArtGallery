@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1
 
 # ---- deps: full dependency tree, needed only to build ----------------------
-FROM node:20-bookworm-slim AS deps
+FROM node:22-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
 # ---- builder: compile the Next.js production bundle ------------------------
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
@@ -15,13 +15,13 @@ COPY . .
 RUN npm run build
 
 # ---- runtime: production dependencies and build output only -----------------
-FROM node:20-bookworm-slim AS runner
+FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000
 
-# node:20 already ships an unprivileged `node` user; reuse it rather than
+# node:22 already ships an unprivileged `node` user; reuse it rather than
 # inventing another one.
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
