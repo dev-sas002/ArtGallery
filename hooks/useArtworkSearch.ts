@@ -59,10 +59,10 @@ export const useArtworkSearch = (pageSize = 12): ArtworkSearchState => {
   const [error, setError] = useState('')
   const [reloadToken, setReloadToken] = useState(0)
 
-  // Bumped on every append so `loadMore` can trigger the effect without the
-  // effect having to depend on the artworks it writes.
-  const [pendingOffset, setPendingOffset] = useState<number | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
+  // An append is started from a click, not from an effect, so it owns its own
+  // controller. Clearing it from an effect cleanup would cancel the very
+  // request the click just made.
+  const appendRef = useRef<AbortController | null>(null)
 
   const run = useCallback(
     async (offset: number, signal: AbortSignal) => {
@@ -97,8 +97,8 @@ export const useArtworkSearch = (pageSize = 12): ArtworkSearchState => {
   // A new search or filter restarts from the top, debounced.
   useEffect(() => {
     const controller = new AbortController()
-    abortRef.current?.abort()
-    abortRef.current = controller
+    // A page still being appended belongs to the previous search.
+    appendRef.current?.abort()
 
     const timer = setTimeout(() => run(0, controller.signal), SEARCH_DEBOUNCE_MS)
 
@@ -108,23 +108,17 @@ export const useArtworkSearch = (pageSize = 12): ArtworkSearchState => {
     }
   }, [run, reloadToken])
 
+  useEffect(() => () => appendRef.current?.abort(), [])
+
   // Appending a page is not debounced — the click is already the intent.
-  useEffect(() => {
-    if (pendingOffset === null) return
-
-    const controller = new AbortController()
-    run(pendingOffset, controller.signal)
-    setPendingOffset(null)
-
-    return () => controller.abort()
-  }, [pendingOffset, run])
-
   const loadMore = useCallback(() => {
-    setNextOffset((offset) => {
-      if (offset !== null) setPendingOffset(offset)
-      return offset
-    })
-  }, [])
+    if (nextOffset === null || status === 'loadingMore') return
+
+    appendRef.current?.abort()
+    const controller = new AbortController()
+    appendRef.current = controller
+    run(nextOffset, controller.signal)
+  }, [nextOffset, run, status])
 
   const retry = useCallback(() => setReloadToken((token) => token + 1), [])
 

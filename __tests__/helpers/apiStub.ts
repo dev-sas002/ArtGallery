@@ -9,14 +9,20 @@ export type StubOptions = {
 /**
  * A stand-in for `GET /api/artworks` that honours search, department, limit
  * and offset, so page tests exercise the real pagination and filtering flow
- * without a server.
+ * without a server. Like a browser, it rejects with `AbortError` when the
+ * request's signal fires before the response arrives.
  */
 export const createFetchStub = ({ artworks, interpretedBy = 'heuristic' }: StubOptions) => {
   const calls: string[] = []
 
-  const impl = jest.fn(async (input: RequestInfo | URL) => {
+  const impl = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input), 'http://localhost')
     calls.push(url.pathname + url.search)
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    if (init?.signal?.aborted) {
+      throw Object.assign(new Error('The operation was aborted.'), { name: 'AbortError' })
+    }
 
     const search = (url.searchParams.get('search') || '').toLowerCase()
     const department = url.searchParams.get('department') || ''

@@ -113,6 +113,24 @@ describe('gallery page', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Load more' })).toBeNull())
   })
 
+  it('drops a page that is still loading when the search changes', async () => {
+    const { impl, calls } = createFetchStub({ artworks: MANY })
+    setFetch(impl)
+
+    render(<Home />)
+    await waitFor(() => expect(screen.getByText('Work 0')).toBeTruthy())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
+    fireEvent.change(screen.getByLabelText('Search the collection'), {
+      target: { value: 'hokusai' },
+    })
+
+    await waitFor(() => expect(lastCall(calls)).toContain('search=hokusai'))
+    await waitFor(() => expect(screen.getByText('Showing 10 of 10 artworks')).toBeTruthy())
+    expect(calls.some((call) => call.includes('offset=12'))).toBe(true)
+    expect(screen.queryByText('Work 14')).toBeNull()
+  })
+
   it('shows an empty state with a way back when nothing matches', async () => {
     const { impl } = createFetchStub({ artworks: CATALOGUE })
     setFetch(impl)
