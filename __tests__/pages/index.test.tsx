@@ -35,6 +35,8 @@ describe('gallery page', () => {
     render(<Home />)
 
     expect(document.querySelectorAll('[aria-hidden="true"]').length).toBeGreaterThan(0)
+    expect(screen.getByText('Loading the collection…')).toBeTruthy()
+    expect(screen.queryByText('No artworks match this search')).toBeNull()
 
     await waitFor(() => expect(screen.getByText('The Great Wave')).toBeTruthy())
     expect(screen.getByText('Showing 3 of 3 artworks')).toBeTruthy()

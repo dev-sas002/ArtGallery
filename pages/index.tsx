@@ -53,7 +53,9 @@ const Home = () => {
           hint={
             gallery.status === 'error'
               ? gallery.error
-              : countLabel(gallery.artworks.length, gallery.total)
+              : firstLoad
+                ? 'Loading the collection…'
+                : countLabel(gallery.artworks.length, gallery.total)
           }
         />
 

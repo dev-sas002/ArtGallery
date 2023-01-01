@@ -32,7 +32,7 @@ export const SearchBar = ({ value, onChange, interpreted, hint }: Props) => (
       )}
     </div>
 
-    <p className={styles.searchHint} id="search-hint">
+    <p className={styles.searchHint} id="search-hint" aria-live="polite">
       {hint}
     </p>
   </div>
