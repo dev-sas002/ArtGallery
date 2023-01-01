@@ -4,15 +4,17 @@
   --mat: #ece8e1;
   --ink: #1d1b18;
   --ink-soft: #55504a;
-  --ink-faint: #8a837a;
+  --ink-faint: #6e675e;
   --rule: #ddd7cd;
   --accent: #7a2e1f;
   --accent-soft: #f0e4e0;
   --focus: #1f5fa8;
   --shadow: 0 1px 2px rgba(29, 27, 24, 0.05), 0 12px 28px rgba(29, 27, 24, 0.07);
   --radius: 4px;
-  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --serif:
+    'EB Garamond', 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --sans:
+    'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   color-scheme: light dark;
 }
 
@@ -23,7 +25,7 @@
     --mat: #26242b;
     --ink: #f0ece5;
     --ink-soft: #b8b2a8;
-    --ink-faint: #837d74;
+    --ink-faint: #9a948a;
     --rule: #33313a;
     --accent: #e0a08c;
     --accent-soft: #33262a;

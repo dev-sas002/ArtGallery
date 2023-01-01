@@ -68,6 +68,14 @@ describe('ArtworkDialog', () => {
     expect(latest).toHaveBeenCalledTimes(1)
   })
 
+  it('locks page scroll while open and restores it on close', () => {
+    const { rerender } = render(<ArtworkDialog artwork={WAVE} onClose={jest.fn()} />)
+    expect(document.body.style.overflow).toBe('hidden')
+
+    rerender(<ArtworkDialog artwork={null} onClose={jest.fn()} />)
+    expect(document.body.style.overflow).toBe('')
+  })
+
   it('closes on Escape, on the backdrop, and on the close button', () => {
     const onClose = jest.fn()
     const { container } = render(<ArtworkDialog artwork={WAVE} onClose={onClose} />)

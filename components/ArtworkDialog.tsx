@@ -44,6 +44,11 @@ export const ArtworkDialog = ({ artwork, onClose }: Props) => {
     openerRef.current = document.activeElement
     dialogRef.current?.focus()
 
+    // Without this the page behind the backdrop scrolls instead of a tall
+    // dialog on a phone.
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         close()
@@ -72,6 +77,7 @@ export const ArtworkDialog = ({ artwork, onClose }: Props) => {
     document.addEventListener('keydown', onKeyDown)
     return () => {
       document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = previousOverflow
       ;(openerRef.current as HTMLElement | null)?.focus?.()
     }
   }, [artwork])
