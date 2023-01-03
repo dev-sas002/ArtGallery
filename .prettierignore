@@ -1,0 +1,7 @@
+.next
+coverage
+node_modules
+package-lock.json
+data/catalog.json
+docs/screenshots
+.env.example
